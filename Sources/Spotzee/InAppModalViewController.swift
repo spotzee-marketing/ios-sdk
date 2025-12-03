@@ -24,7 +24,7 @@ class InAppModalViewController: UIViewController {
 
     init?(
         notification: SpotzeeNotification,
-        delegate: InAppModelViewControllerDelegate,
+        delegate: InAppModelViewControllerDelegate
     ) {
         guard let content = notification.content as? HtmlNotification else { return nil }
         self.notification = notification

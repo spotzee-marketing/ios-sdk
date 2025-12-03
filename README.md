@@ -97,22 +97,26 @@ Spotzee.initialize(
 )
 ```
 
-This delegate contains three methods that you can configure to help you determine how and when notifications should display.
+This delegate contains methods that you can configure to help you determine how and when notifications should display.
 ```swift
 public protocol InAppDelegate: AnyObject {
     var autoShow: Bool { get }
+    var useDarkMode: Bool { get }
     func onNew(notification: SpotzeeNotification) -> InAppDisplayState
+    func didDisplay(notification: SpotzeeNotification)
     func handle(action: InAppAction, context: [String: Any], notification: SpotzeeNotification)
     func onError(error: Error)
 }
 ```
-- `autoShow: boolean`: Should notifications automatically display upon receipt and app open
+- `autoShow: Bool`: Should notifications automatically display upon receipt and app open (default: `true`)
+- `useDarkMode: Bool`: Whether to apply dark mode styling to notifications (default: `false`)
 - `onNew(notification: SpotzeeNotification) -> InAppDisplayState`: When a notification is received (and `autoShow` is true), what should the SDK do? Options are:
     - `show`: Display the notification to the user
     - `skip`: Iterate to the next notification if there is one, otherwise do nothing. This does not mark the notification as read
     - `consume`: Mark the notification as read and never show again
+- `didDisplay(notification: SpotzeeNotification)`: Called when a notification is displayed to the user
 - `handle(action: InAppAction, context: [String: Any], notification: SpotzeeNotification)`: Triggered when an action is taken inside of a notification. Possible actions are:
-    - `close`: Triggered to dismiss and consume a displayed notification
+    - `dismiss`: Triggered to dismiss and consume a displayed notification
     - `custom`: Triggered with custom data for the app to utilize
 - `onError(error: Error)`: Provide errors if any have been encountered
 
@@ -128,7 +132,7 @@ If you would like to manually handle showing notifications, this can be achieved
 #### Handling In-App Actions
 The SDK handles actions in a couple of different ways. At its simplest, to close a notification you can use the `spotzee://dismiss` deeplink.
 
-If you'd like to pass information from the in-app notification to the app (for example based on what button they click, etc) you can use the JS trigger `window.custom(obj)` or use any other deeplink using the `spotzee://` scheme such as `spotzee://special/custom`
+If you'd like to pass information from the in-app notification to the app (for example based on what button they click, etc) you can use the JS trigger `window.trigger(obj)` or use any other deeplink using the `spotzee://` scheme such as `spotzee://special/custom`
 
 ### Deeplink & Universal Link Navigation
 To allow for click tracking links in emails can be click-wrapped in a Spotzee url that then needs to be unwrapped for navigation purposes.
