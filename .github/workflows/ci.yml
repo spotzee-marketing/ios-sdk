@@ -8,38 +8,36 @@ on:
 
 jobs:
   build:
-    name: Build and Test
-    runs-on: macos-latest
+    name: Build and Validate
+    runs-on: macos-14
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: sudo xcode-select -switch /Applications/Xcode.app
+      - name: Show Xcode version
+        run: xcodebuild -version
 
       - name: Build iOS SDK
         run: |
           xcodebuild -scheme Spotzee \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -destination 'generic/platform=iOS Simulator' \
             build
 
       - name: Build Example App
         run: |
           xcodebuild -project Example/Example.xcodeproj \
             -scheme Example \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -destination 'generic/platform=iOS Simulator' \
             build
 
   lint-podspec:
     name: Lint Podspec
-    runs-on: macos-latest
+    runs-on: macos-14
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Lint Podspec
-        run: pod lib lint Spotzee.podspec --allow-warnings
+        run: pod lib lint Spotzee.podspec --allow-warnings --sources='https://cdn.cocoapods.org/'
