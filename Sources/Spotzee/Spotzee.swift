@@ -334,8 +334,14 @@ public class Spotzee {
         return false
     }
 
+    /// Check if URL is a Spotzee tracking link (works with custom domains)
     public func isSpotzeeDeepLink(url: String) -> Bool {
-        return url.starts(with: "\(NetworkManager.apiURL)/c")
+        guard let urlComponents = URLComponents(string: url),
+              let _ = urlComponents.queryItems?.first(where: { $0.name == "r" })?.value else {
+            return false
+        }
+        let path = urlComponents.path
+        return path.hasSuffix("/c") || path.contains("/c/")
     }
 
     private func open(url: URL) {

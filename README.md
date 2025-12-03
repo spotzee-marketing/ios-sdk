@@ -141,6 +141,8 @@ Spotzee includes a method which checks to see if a given URL is a Spotzee URL an
 
 To start using deeplinking in your app, add your Spotzee deployment URL as an Associated Domain to your app. To do so, navigate to Project -> Target -> Select your primary target -> Signing & Capabilities. From there, scroll down to Associated Domains and hit the plus button. Enter the domain in the format `applinks:YOURDOMAIN.com` i.e. `applinks:apix.spotzee.com`.
 
+**Custom Tracking Domains:** If you're using a custom tracking domain (e.g., `track.yourcompany.com`), add that domain as an Associated Domain instead: `applinks:track.yourcompany.com`. The SDK automatically detects Spotzee tracking links by their path pattern (`/c`) rather than hostname, so custom domains work seamlessly.
+
 Next, you'll need to update your apps code to support unwrapping the Spotzee URLs that open your app. To do so, use the `handle(universalLink: URL)` method. In your app delegate's `application(_:continue:restorationHandler:)` method, unwrap the URL and pass it to the handler:
 
 ```swift
