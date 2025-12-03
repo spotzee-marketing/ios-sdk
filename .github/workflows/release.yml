@@ -14,12 +14,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
       - name: Show Xcode version
         run: xcodebuild -version
 
       - name: Validate iOS SDK Build
         run: |
           xcodebuild -scheme Spotzee \
+            -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
             -configuration Release \
             build
@@ -59,6 +63,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
 
       - name: Publish to CocoaPods Trunk
         run: pod trunk push Spotzee.podspec --allow-warnings

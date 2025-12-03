@@ -15,12 +15,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
       - name: Show Xcode version
         run: xcodebuild -version
 
       - name: Build iOS SDK
         run: |
           xcodebuild -scheme Spotzee \
+            -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
             build
 
@@ -28,6 +32,7 @@ jobs:
         run: |
           xcodebuild -project Example/Example.xcodeproj \
             -scheme Example \
+            -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
             build
 
@@ -39,5 +44,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
       - name: Lint Podspec
-        run: pod lib lint Spotzee.podspec --allow-warnings --sources='https://cdn.cocoapods.org/'
+        run: pod lib lint Spotzee.podspec --allow-warnings
