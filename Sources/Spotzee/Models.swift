@@ -1,0 +1,201 @@
+import Foundation
+import UIKit
+
+public struct Config {
+    let apiKey: String
+    let inAppDelegate: InAppDelegate?
+}
+
+public class NetworkError: Error { }
+
+public struct Identity: Encodable {
+    let anonymousId: String
+    let externalId: String?
+    let phone: String?
+    let email: String?
+    let traits: [String: Any]
+
+    enum CodingKeys: String, CodingKey {
+        case anonymousId, externalId, phone, email
+        case traits = "data"
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(anonymousId, forKey: .anonymousId)
+        try container.encodeIfPresent(externalId, forKey: .externalId)
+        try container.encodeIfPresent(phone, forKey: .phone)
+        try container.encodeIfPresent(email, forKey: .email)
+        try container.encodeIfPresent(traits, forKey: .traits)
+    }
+}
+
+struct Alias: Encodable {
+    let anonymousId: String
+    let externalId: String?
+}
+
+struct Event: Encodable {
+    let name: String
+    let anonymousId: String
+    let externalId: String?
+    let data: [String: Any]
+
+    enum CodingKeys: String, CodingKey {
+        case name, anonymousId, externalId, data
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(anonymousId, forKey: .anonymousId)
+        try container.encodeIfPresent(externalId, forKey: .externalId)
+        try container.encodeIfPresent(data, forKey: .data)
+    }
+}
+
+struct Device: Codable {
+    let anonymousId: String
+    let externalId: String?
+    let deviceId: String
+    let token: String?
+    let os: String
+    let osVersion: String
+    let model: String
+    let appBuild: String
+    let appVersion: String
+
+    init(anonymousId: String, deviceId: String, externalId: String?, token: String?) {
+        self.anonymousId = anonymousId
+        self.deviceId = deviceId
+        self.externalId = externalId
+        self.token = token
+        self.os = "iOS"
+        self.osVersion = UIDevice.current.systemVersion
+        self.model = Self.model
+        self.appBuild = Self.appBuild
+        self.appVersion = Self.appVersion
+    }
+
+    static let model: String = {
+        var systemInfo = utsname()
+        uname(&systemInfo)
+        let machineMirror = Mirror(reflecting: systemInfo.machine)
+        let identifier = machineMirror.children.reduce("") { identifier, element in
+            guard let value = element.value as? Int8, value != 0 else { return identifier }
+            return identifier + String(UnicodeScalar(UInt8(value)))
+        }
+        return identifier
+    }()
+
+    static let appVersion: String = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String
+
+    static let appBuild: String = Bundle.main.infoDictionary?["CFBundleVersion"] as! String
+}
+
+public struct Page<T: Decodable>: Decodable {
+    public let results: [T]
+    let nextCursor: String?
+}
+
+public enum NotificationType: String, Decodable {
+    case banner
+    case alert
+    case html
+}
+
+public protocol NotificationContent {
+    var title: String { get }
+    var body: String  { get }
+    var readOnShow: Bool? { get }
+    var custom: [String: String]? { get }
+    var context: [String: String]? { get }
+}
+
+public struct BannerNotification: NotificationContent, Decodable {
+    public let title: String
+    public let body: String
+    public let readOnShow: Bool?
+    public let custom: [String: String]?
+    public let context: [String: String]?
+}
+
+public struct AlertNotification: NotificationContent, Decodable {
+    public let title: String
+    public let body: String
+    public let image: String?
+    public let readOnShow: Bool?
+    public let custom: [String: String]?
+    public let context: [String: String]?
+}
+
+public struct HtmlNotification: NotificationContent, Decodable {
+    public let title: String
+    public let body: String
+    public let html: String
+    public let readOnShow: Bool?
+    public let custom: [String: String]?
+    public let context: [String: String]?
+
+    enum CodingKeys: CodingKey {
+        case title
+        case body
+        case html
+        case readOnShow
+        case custom
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.title = try container.decode(String.self, forKey: .title)
+        self.body = try container.decode(String.self, forKey: .body)
+        self.html = try container.decode(String.self, forKey: .html)
+        self.readOnShow = try container.decodeIfPresent(Bool.self, forKey: .readOnShow)
+
+        let customProperties = try container.decodeIfPresent([String: Any].self, forKey: .custom)
+        let contextProperties = customProperties?["context"] as? [String: Any]
+
+        let context = contextProperties?.reduce(into: [String: String]()) { dict, tuple in
+            dict[tuple.key] = "\(tuple.value)"
+        }
+        self.context = context?.isEmpty == false ? context : nil
+
+        let custom = customProperties?.reduce(into: [String: String]()) { dict, tuple in
+            guard tuple.key != "context" else { return }
+            dict[tuple.key] = "\(tuple.value)"
+        }
+        self.custom = custom?.isEmpty == false ? custom : nil
+    }
+}
+
+public struct SpotzeeNotification: Decodable {
+    public let id: Int
+    public let contentType: NotificationType
+    public let content: NotificationContent
+    let readAt: Date?
+    let expiresAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case contentType
+        case content
+        case readAt
+        case expiresAt
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int.self, forKey: .id)
+        contentType = try container.decode(NotificationType.self, forKey: .contentType)
+        switch contentType {
+        case .banner:
+            content = try container.decode(BannerNotification.self, forKey: .content)
+        case .alert:
+            content = try container.decode(AlertNotification.self, forKey: .content)
+        case .html:
+            content = try container.decode(HtmlNotification.self, forKey: .content)
+        }
+        readAt = try container.decodeIfPresent(Date.self, forKey: .readAt)
+        expiresAt = try container.decodeIfPresent(Date.self, forKey: .expiresAt)
+    }
+}

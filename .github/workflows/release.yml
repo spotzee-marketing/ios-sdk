@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode.app
+
+      - name: Build iOS SDK
+        run: |
+          xcodebuild -scheme Spotzee \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -configuration Release \
+            build
+
+      - name: Get Version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.version.outputs.version }}
+          body: |
+            ## Spotzee iOS SDK v${{ steps.version.outputs.version }}
+
+            ### Installation
+
+            **Swift Package Manager:**
+            ```
+            https://github.com/spotzee-marketing/ios-sdk
+            ```
+
+            **CocoaPods:**
+            ```ruby
+            pod 'Spotzee', '~> ${{ steps.version.outputs.version }}'
+            ```
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-cocoapods:
+    name: Publish to CocoaPods
+    runs-on: macos-latest
+    needs: release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish to CocoaPods Trunk
+        run: |
+          pod trunk push Spotzee.podspec --allow-warnings
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
