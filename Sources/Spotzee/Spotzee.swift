@@ -167,19 +167,21 @@ public class Spotzee {
     /// Track an event
     ///
     /// Send events for both anonymous and identified users to Spotzee to
-    /// trigger journeys or lists.
+    /// trigger journeys or lists. Optionally update user profile fields inline.
     ///
     /// - Parameters:
     ///     - event: A string name of the event
     ///     - properties: A dictionary of attributes associated to the event
+    ///     - user: Optional user profile fields to update inline with the event
     ///
-    public func track(event: String, properties: [String: Any]) {
+    public func track(event: String, properties: [String: Any], user: TrackUser? = nil) {
         self.checkInit()
         let event = Event(
             name: event,
             anonymousId: self.anonymousId,
             externalId: self.externalId,
-            data: properties
+            data: properties,
+            user: user
         )
         self.postEvent(event)
     }

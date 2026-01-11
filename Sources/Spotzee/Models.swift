@@ -35,14 +35,51 @@ struct Alias: Encodable {
     let externalId: String?
 }
 
+/// User profile fields for inline updates during event tracking
+public struct TrackUser: Encodable {
+    public let email: String?
+    public let phone: String?
+    public let timezone: String?
+    public let locale: String?
+    public let data: [String: Any]?
+
+    public init(
+        email: String? = nil,
+        phone: String? = nil,
+        timezone: String? = nil,
+        locale: String? = nil,
+        data: [String: Any]? = nil
+    ) {
+        self.email = email
+        self.phone = phone
+        self.timezone = timezone
+        self.locale = locale
+        self.data = data
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case email, phone, timezone, locale, data
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(email, forKey: .email)
+        try container.encodeIfPresent(phone, forKey: .phone)
+        try container.encodeIfPresent(timezone, forKey: .timezone)
+        try container.encodeIfPresent(locale, forKey: .locale)
+        try container.encodeIfPresent(data, forKey: .data)
+    }
+}
+
 struct Event: Encodable {
     let name: String
     let anonymousId: String
     let externalId: String?
     let data: [String: Any]
+    let user: TrackUser?
 
     enum CodingKeys: String, CodingKey {
-        case name, anonymousId, externalId, data
+        case name, anonymousId, externalId, data, user
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -51,6 +88,7 @@ struct Event: Encodable {
         try container.encode(anonymousId, forKey: .anonymousId)
         try container.encodeIfPresent(externalId, forKey: .externalId)
         try container.encodeIfPresent(data, forKey: .data)
+        try container.encodeIfPresent(user, forKey: .user)
     }
 }
 
