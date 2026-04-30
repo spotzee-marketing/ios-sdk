@@ -207,15 +207,22 @@ public class Spotzee {
     }
 
     public typealias Cursor = String
-    public func getNofications() async throws -> Page<SpotzeeNotification> {
+    public func getNotifications() async throws -> Page<SpotzeeNotification> {
         let user = Alias(anonymousId: self.anonymousId, externalId: self.externalId)
         guard let network = self.network else { throw NetworkError() }
         return try await network.get(path: "notifications", user: user)
     }
 
+    /// Deprecated alias preserved for source compatibility with releases prior to the
+    /// typo fix. New code should call ``getNotifications()``.
+    @available(*, deprecated, renamed: "getNotifications", message: "Use getNotifications() — the previous name had a typo.")
+    public func getNofications() async throws -> Page<SpotzeeNotification> {
+        return try await getNotifications()
+    }
+
     public func showLatestNotification() async {
         do {
-            let notifications = try await self.getNofications()
+            let notifications = try await self.getNotifications()
 
             // Run through all notifications to check if they should
             // be displayed or not

@@ -52,7 +52,7 @@ Spotzee.initialize(apiKey: "YOUR_API_KEY")
 ```
 
 ### Identify
-You can handle the user identity of your users by using the `identify` method. This method works in combination either/or associate a given user to your internal user ID (`external_id`) or to associate attributes (traits) to the user. By default all events and traits are associated with an anonymous ID until a user is identified with an `external_id`. From that point moving forward, all updates to the user and events will be associated to your provider identifier.
+You can handle the user identity of your users by using the `identify` method. This method works in combination either/or associate a given user to your internal user ID (`external_id`) or to associate attributes (traits) to the user. By default all events and traits are associated with an anonymous ID until a user is identified with an `external_id`. From that point moving forward, all updates to the user and events will be associated to your `external_id`.
 ```swift
 Spotzee.shared.identify(id: "USER_ID", traits: [
     "first_name": "John",
@@ -145,7 +145,7 @@ public protocol InAppDelegate: AnyObject {
 If you would like to manually handle showing notifications, this can be achieved by turning `autoShow` to false and then calling `Spotzee.shared.showLatestNotification()`
 
 #### Helper Methods
-- `getNofications() async throws -> Page<SpotzeeNotification>`: Returns a page of notifications
+- `getNotifications() async throws -> Page<SpotzeeNotification>`: Returns a page of notifications. (`getNofications()` is kept as a deprecated alias for source compatibility with older releases.)
 - `showLatestNotification() async`: Display the latest notification to the user
 - `show(notification: SpotzeeNotification) async`: Display a provided notification to the user
 - `consume(notification: SpotzeeNotification) async`: Mark a notification as being read
