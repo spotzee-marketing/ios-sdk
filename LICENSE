@@ -25,7 +25,7 @@ SOFTWARE.
 
 THIRD-PARTY NOTICES
 
-This software incorporates code from the Parcelvoy iOS SDK:
+This software incorporates MIT-licensed code from the upstream SDK:
 
 MIT License
 Copyright (c) 2024 Parcelvoy
