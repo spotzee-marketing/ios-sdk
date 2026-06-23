@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'Spotzee'
-  s.version          = '0.2.0'
+  s.version          = '0.2.1'
   s.summary          = 'Spotzee iOS SDK for event tracking and push notifications.'
 
   s.description      = <<-DESC
