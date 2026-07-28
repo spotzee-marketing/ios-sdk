@@ -31,13 +31,26 @@ struct InAppBridgePolicyTests {
         precondition(dismiss?.action == .dismiss)
         precondition(dismiss?.context.isEmpty == true)
 
+        let scalarCustom = InAppBridgePolicy.message(
+            actionName: "custom",
+            body: "billing",
+            isMainFrame: true
+        )
+        precondition(scalarCustom?.action == .custom)
         precondition(
-            InAppBridgePolicy.message(
-                actionName: "custom",
-                body: "billing",
-                isMainFrame: true
-            ) == nil,
-            "custom actions require an object payload"
+            scalarCustom?.context.isEmpty == true,
+            "existing scalar custom actions must retain their empty context"
+        )
+
+        let arrayCustom = InAppBridgePolicy.message(
+            actionName: "custom",
+            body: ["billing"],
+            isMainFrame: true
+        )
+        precondition(arrayCustom?.action == .custom)
+        precondition(
+            arrayCustom?.context.isEmpty == true,
+            "existing array custom actions must retain their empty context"
         )
         precondition(
             InAppBridgePolicy.message(

@@ -27,8 +27,10 @@ enum InAppBridgePolicy {
         case .dismiss:
             return InAppBridgeMessage(action: action, context: [:])
         case .custom:
-            guard let context = body as? [String: Any] else { return nil }
-            return InAppBridgeMessage(action: action, context: context)
+            return InAppBridgeMessage(
+                action: action,
+                context: body as? [String: Any] ?? [:]
+            )
         }
     }
 }
