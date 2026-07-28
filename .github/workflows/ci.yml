@@ -18,6 +18,9 @@ jobs:
       - name: Verify external actions are pinned
         run: sh scripts/check-actions-pinned.sh
 
+      - name: Verify in-app bridge policy
+        run: ./scripts/check-in-app-bridge-policy.sh
+
       - name: Set Xcode version
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
 
