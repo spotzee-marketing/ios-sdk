@@ -1,10 +1,6 @@
 import UIKit
 import WebKit
 
-public enum InAppAction: String, CaseIterable {
-    case dismiss, custom
-}
-
 protocol InAppModelViewControllerDelegate: AnyObject {
     var useDarkMode: Bool { get }
     func didDisplay(notification: SpotzeeNotification)
@@ -108,6 +104,9 @@ extension InAppModalViewController: WKNavigationDelegate, WKScriptMessageHandler
         // If matches `spotzee` deeplink path
         if url.absoluteString.starts(with: "spotzee://") {
             decisionHandler(.cancel)
+            guard InAppBridgePolicy.allowsNavigationAction(
+                isMainFrame: navigationAction.sourceFrame.isMainFrame
+            ) else { return }
 
             if url.absoluteString == "spotzee://dismiss" {
                 return processAction(action: .dismiss)
@@ -120,13 +119,20 @@ extension InAppModalViewController: WKNavigationDelegate, WKScriptMessageHandler
 
         // Disable all other page actions, pop open in a new browser
         decisionHandler(.cancel)
+        guard InAppBridgePolicy.allowsNavigationAction(
+            isMainFrame: navigationAction.sourceFrame.isMainFrame
+        ) else { return }
         if UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
         }
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard let action = InAppAction(rawValue: message.name) else { return }
-        processAction(action: action, body: message.body as? [String: Any] ?? [:])
+        guard let bridgeMessage = InAppBridgePolicy.message(
+            actionName: message.name,
+            body: message.body,
+            isMainFrame: message.frameInfo.isMainFrame
+        ) else { return }
+        processAction(action: bridgeMessage.action, body: bridgeMessage.context)
     }
 }
